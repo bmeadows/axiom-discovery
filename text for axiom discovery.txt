@@ -1,0 +1,11 @@
+Caption for binary tree : expand slightly
+
+
+Caption for logical/action tree : expand slightly
+
+
+Paragraph explaining construction of binary tree (reworded)
+
+
+Paragraph explaining construction of logical/axiom tree (reworded)
+
