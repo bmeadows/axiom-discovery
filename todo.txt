@@ -1,0 +1,4 @@
+If possible:
+1. Generate data to compare Q-RRL convergence rate with Q-learning convergence rate
+2. Produce graph
+
