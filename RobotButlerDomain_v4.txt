@@ -45,6 +45,7 @@ What the robot knows:
 ~ It cannot be in more than 1 location at once.
 ~ People cannot be in in more than 1 different room at once.
 - The robot cannot deliver a beverage if it is not in the same location as the person.
+- Engineers are using equipment if they are in the workshop; anyone is using equipment if they are in the kitchen.
 
 What it doesn't know:
 - impossible serve(#person) if person using equipment.
@@ -72,3 +73,5 @@ Tacitly:
 - Different mix of roles of people in a particular floor (e.g. 2 salesman and a manager).
 - Have location matter. Add a hallway that acts as a nexus between rooms. All movement is now constrained, and exogenous person-movements are now more plausible.
 - Model the drinks as domain objects: Robot has to pick them up from the kitchen, carry them one at a time, return.
+- Expand to learn about failures of the 'move' action alongside failures of the 'serve' action.
+
