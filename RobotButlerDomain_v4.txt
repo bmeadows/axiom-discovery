@@ -25,9 +25,11 @@ room = {office_space, conference_room, kitchen, workshop}
 using_equipment = {true, false}
 
 Fluents:
-- location of robot changes when the robot moves.
-- location of a person changes when the person moves. This is an oracle-prescribed exogenous action; it is deterministic based on hour of day but is unknown to the robot.
-- person has a drink if the person didn't have a drink before and they are at the same location as the robot and the robot serves the person.
+- Location of robot changes when the robot moves.
+- Location of a person changes when the person moves.
+- People moving is an oracle-prescribed exogenous action; it is deterministic based on hour of day but is unknown to the robot.
+- However, assume the robot fully perceives the state (it does not 'expect' the deterministic movement but is aware of its outcomes).
+- Person has a drink if the person didn't have a drink before and they are at the same location as the robot and the robot serves the person.
 
 Derived predicates:
 time = {morning, afternoon, evening}
@@ -49,6 +51,10 @@ What it doesn't know:
 - impossible serve(#person) if person's location is workshop.
 - impossible serve(#person) if person's location is conference_room and hour is not 12.
 - impossible serve(#person) if person is engineer and time is not afternoon.
+
+Possible obstacle:
+- If movement is deterministic based on hour, the robot may learn a bad constraint based on the associated hour (given many examples).
+- Because it does already know that it can't serve a drink from the wrong location.
 
 ---
 
