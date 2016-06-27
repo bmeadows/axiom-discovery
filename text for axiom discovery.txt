@@ -1,11 +1,119 @@
-Caption for binary tree : expand slightly
+> New caption for binary decision tree
+
+Subset of a binary decision tree (BDT( for a specific scenario in the Blocks 
+World domain, as might be seen while learning is ongoing. This tree is used to 
+compute the policy for the remainder of the learning process, during which it 
+will in turn be altered to reflect the outcomes of that process. Ellipses 
+indicate an elided part of the tree. Numbers at the leaves reflect Q-values. 
 
 
-Caption for logical/action tree : expand slightly
+----------
+
+> Caption for logical/axiom tree
+
+Subset of a decision tree representing candidate axioms related to an action 
+in the Blocks World domain. This tree describes a possible executability 
+constraint on the \textit{move(A,D)} action. Ellipses indicate an elided part 
+of the tree. Numbers attached to the leaves reflect amassed mean values.
 
 
-Paragraph explaining construction of binary tree (reworded)
+----------
+
+> Paragraphs explaining construction of binary decision tree
+> (written to extend the paragraph on p5 of the short paper describing BDTs) 
+
+The next step is to estimate the Q-values of the state-action pairs Q(s,a) for 
+particular scenarios (pairs of goal and initial states). Basic RL algorithms 
+for estimating Q-values, such as Q-learning and SARSA, do not scale well with 
+large increases in the state space size, becoming computationally intractable. 
+They also do not generalize to relationally equivalent states. To ameliorate 
+this, we use a relational representation: after an episode (one iteration) of 
+Q-learning in the scenario under consideration, all state-action pairs that 
+have been visited, along with their estimated Q-values, are used to update a 
+binary (i.e., logical) decision tree (BDT). The path from the root node to a 
+leaf node corresponds to one a pair <s, a>, where a is an action and s is a 
+partial state description. Individual nodes in the BDT correspond to true/false 
+tests (specific fluents or actions) with which the node's two sub-branches are 
+associated. 
+
+Rather than generating the tree again for each iteration, we use the RRL-TG 
+algorithm (Driessens, Ramon, & Hendrik, 2001) for incremental decision tree 
+learning. Driessens et al. were motivated by four key problems with basic 
+Q-learning, which would apply to our work: 
+- Storing a monotonically increasing set of examples in the form of 
+<state, action, Q-value> triples produces overheads;
+- Every new example incurs the cost of looking up its previous stored value; 
+- Building a tree from scratch after each episode is computationally expensive; 
+- An example receives an updated Q-value when exactly the same state-action pair 
+is encountered, but should receive one when an example in the same cluster 
+(leaf) is encountered.
+The advantages of RRL-TG are fourfold in that they address these problems.
+
+RRL-TG is a fully incremental inductive learning algorithm operating over a 
+dynamic decision tree. For each current leaf, it retains data on each possible 
+test (a fluent or action, in the case of the binary tree) which could be used 
+to split the leaf. Any example the system encounters is sorted down the current 
+tree and updates the test data in the leaf it arrives at. After each learning 
+episode, the framework checks whether there is sufficient data stored at any 
+leaf to split that leaf.
+
+The data stored at a leaf consists of the number of examples on which each 
+valid test succeeds or fails, the sum of their Q-values, and the sum of their 
+squared Q-values. This is sufficient to calculate the variance of the examples. 
+When a potential split on some test would produce a significant reduction in 
+variance, that split is implemented. The test is added to that node and the new 
+leaves have zeroed data and initial Q-values based on the data that had been 
+stored at their parent. This initial value is based only on the examples 
+encountered in the last generation of the tree, and the current one. 
+
+By the nature of this process, examples do not need to be stored, previous 
+stored values are not checked, the tree is never rebuilt, and examples' 
+Q-values are updated based on clusters, not individual examples 
+(Driessens, Ramon, & Hendrik, 2001). This leads to significant performance 
+improvements for a Q-learning system.
+
+The BDT is altered after every iteration, by adjusted predicted Q-values and 
+possibly also by the addition of a test and two new nodes to the tree. This 
+means the policy in the next iteration is already updated. When learning is 
+terminated after convergence of the Q-values or after a specific number of 
+episodes, the BDT relationally represents the experiences of the robot. 
+Figure 6 illustrates a subset of a BDT being constructed during the learning 
+process for the Blocks World domain.
 
 
-Paragraph explaining construction of logical/axiom tree (reworded)
+----------
 
+> Paragraphs explaining construction of logical/axiom tree
+> (written to extend the 2nd-to-last paragraph of Sec 3 of the short paper)
+
+The fourth step identifies candidate new domain axioms; specifically, 
+executability constraints. The head of such an axiom contains a grounded 
+action, and the body contains a set of one or more attributes that influence 
+(or are influenced by) the action. We first construct a set of training samples 
+by considering each possible action and the corresponding attributes based on 
+the BDT constructed in the previous steps, for each path in the BDT containing 
+that action. The choice of action is guided by the current learning scenario, 
+whose goal state specifies that some action(s) had an unexpected outcome. 
+
+These training samples are used to construct a new decision tree. The root node 
+of this tree corresponds to the non-occurrence of the action, intermediate 
+nodes correspond to attributes of objects involved in the action (i.e., 
+relevant fluents), and the leaf nodes average the values of the training 
+samples grouped under that node. Each path from the root node to a leaf 
+describes a candidate axioms with a corresponding value. Figure 7 illustrates a 
+subset of such a tree for one specific action, 'move A to D', in the Blocks 
+World. Because the training samples are not drawn incrementally and learning is 
+not occurring, the process of constructing this tree does not need to use the 
+techniques described for the BDT.
+
+
+----------
+
+@INPROCEEDINGS{Driessens01speedingup,
+    author = {Kurt Driessens and Jan Ramon and Hendrik Blockeel},
+    title = {Speeding up Relational Reinforcement Learning Through the Use of an Incremental First Order Decision Tree Learner},
+    booktitle = {Proceedings of the Thirteenth European Conference on Machine Learning},
+    year = {2001},
+    pages = {97--108},
+    publisher = {Springer-Verlag}
+}
