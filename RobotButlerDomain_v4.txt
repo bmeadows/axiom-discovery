@@ -52,6 +52,7 @@ What it doesn't know:
 - impossible serve(#person) if person's location is workshop.
 - impossible serve(#person) if person's location is conference_room and hour is not 12.
 - impossible serve(#person) if person is engineer and time is not afternoon.
+- impossible serve(#person) if person moves away just as the robot is trying to serve them.
 
 Possible obstacle:
 - If movement is deterministic based on hour, the robot may learn a bad constraint based on the associated hour (given many examples).
