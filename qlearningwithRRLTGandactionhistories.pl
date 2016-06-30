@@ -474,15 +474,15 @@ checkForTreeSplits :-
 					% We now relax the tests, arbitrarily, with increasing numbers of example in a node
 					% TODO revisit with something much cleaner
 					(
-						((Count1 >= 5, Count2 >= 5, (VarYesProportion =< 0.8 ; VarNoProportion  =< 0.8), MeanProportion  =< 0.4) -> inc_clause1 ; false)
+						((Count1 >= 5, Count2 >= 5, (VarYesProportion =< 0.8 ; VarNoProportion  =< 0.8), MeanProportion  =< 0.6) -> inc_clause1 ; false)
 						;
-						((Count1 >= 15, Count2 >= 15, (VarYesProportion =< 0.85 ; VarNoProportion  =< 0.85), MeanProportion  =< 0.55) -> inc_clause2 ; false)
+						((Count1 >= 15, Count2 >= 15, (VarYesProportion =< 0.85 ; VarNoProportion  =< 0.85), MeanProportion  =< 0.7) -> inc_clause2 ; false)
 						;
-						((Count1 >= 45, Count2 >= 45, (VarYesProportion =< 0.9 ; VarNoProportion  =< 0.9), MeanProportion  =< 0.7) -> inc_clause3 ; false)
+						((Count1 >= 45, Count2 >= 45, (VarYesProportion =< 0.9 ; VarNoProportion  =< 0.9), MeanProportion  =< 0.8) -> inc_clause3 ; false)
 						;
-						((Count1 >= 120, Count2 >= 120, (VarYesProportion =< 0.95 ; VarNoProportion  =< 0.95), MeanProportion  =< 0.85) -> inc_clause4 ; false)
+						((Count1 >= 120, Count2 >= 120, (VarYesProportion =< 0.95 ; VarNoProportion  =< 0.95), MeanProportion  =< 0.9) -> inc_clause4 ; false)
 						;
-						((Count1 >= 250, Count2 > 250, (VarYesProportion =< 0.999 ; VarNoProportion  =< 0.999), MeanProportion  =< 0.99) -> inc_clause5 ; false)
+						((Count1 >= 250, Count2 > 250, (VarYesProportion =< 0.999 ; VarNoProportion  =< 0.999), MeanProportion  =< 0.999) -> inc_clause5 ; false)
 					)
 					
 				),
@@ -704,25 +704,180 @@ updateLearningValue :-
 
 /*
 
-(notes elided)
+ = = = = = = =  Notes; Issues; History; Decisions  = = = = = = = 
+ = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-Partial list of bugs fixed...
 
-- Divide by zero, e.g. for zero variance cases.
-- Upgraded print/writef for modern Prolog.
-- Backtracking was unexpectedly occurring and causing bad values via assert/retract.
-- Test stats for negative examples were being updated with the data from their corresponding positive examples.
-- Lack of separate cases for 'non-root leaf' and 'non-root non-leaf' were leading to false data.
-- Note that leaves end up with many examples attached, suggesting they 'should' be split, but in fact they're often all the exact same or similar example.
-- Fixed a problem where negative variance was being calculated.
-- Fixed a bug where derived predicates were being tested as fluents.
+1. List of recently-fixed bugs:
+
+- No longer storing all Q-values individually 'because the mean changes'. That's not the case. The Driessens paper is correct. See below for a proof.
+- Removed divide by zero, e.g. for zero variance cases.
+- Upgraded print/writef usage for modern SWI-Prolog.
+- Backtracking was occurring in places it was not expected, causing bad values via assert/retract.
+- Test statistics for negative examples were being updated with the data from their corresponding positive examples.
+- Lack of distinct cases for 'non-root leaf' and 'non-root non-leaf' in a function were leading to false data.
+- Fixed a problem where negative variance was being calculated due to 'square sum' being smaller than 'sum' for small values.
+- Fixed a bug where derived predicates were being tested as simple fluents.
 - Caught a problem where calculating the inverse of a mean was producing faulty initial Q-values.
-- Investigated various ways of combining factors to work out which, if any, node to split. e.g., variance, change in variance, yes/no child differences, number of examples.
-- Switched to a requirement that only one of the new leaves would experience a reduction in variance.
+- Investigated various ways of combining factors to work out which, if any, node to split.
+	e.g., variance, change in variance, yes/no child differences, number of examples.
+- Switched splitting to a requirement that only one of the new leaves must experience a reduction in variance.
 - Having the robot butler domain always start at 10AM allowed the system to quickly learn that serving an engineer would always fail,
-	so exploitation would always run endless examples of moving to the engineer's location (if necessary) and serving them. Changed to spread of times.
-- Adjusted robot butler domain so that exogenous events (people moving) correctly updates other outcomes of their location - to wit, previous equipment use 
-	and appropriate contextual chance of new equipment use.
+	so exploitation would always run examples of moving to the engineer's location (if necessary) and serving them. Changed to spread of initial times.
+- Adjusted robot butler domain so that exogenous events (people moving + hour of day) correctly updates other outcomes of the change;
+	specifically, previous equipment use and appropriate contextual chance of new equipment use.
+
+
+2. Question: Making a decision about WHICH node to split and WHETHER to split a node.
+
+Classically, would use a distance measure.
+- Is the best option significantly different from the second-best option? Is there a difference in the magnitude in reduction in variance?
+- Is the best option sufficiently good to make the split? With what level of certainty?
+- In the Blocks World, leaves end up with a very large number of examples attached, suggesting they 'should' be split.
+	But in fact they're often all the exact same or similar example.
+- The more complex the domain, the more likely examples at a leaf will genuinely be different.
+
+The current solution:
+- Find the variance in Q-values in all examples in the node.
+- For each test, find what the new variance would be for the 'yes' and 'no' children.
+- Check that at least one child would have a lower variance (by some threshold) than the parent variance.
+- Check that the average of the children's variances is lower (by some threshold) than the parent variance.
+- Adjust the threshold in the above two clauses slightly by number of examples.
+- For all such possible node-test combinations, choose the best (the lowest compared to the parent variance).
+
+
+3. Advantages and disadvantages of just storing statistics on each example at a leaf, rather than all past examples as a table.
+
+- Can set Q-value initially to the mean of the relevant parent examples (i.e., for the 'yes' child, the mean of those 
+	examples that were positive on the splitting test and similar for the 'no' child). Then adjust via learning process for future examples.
+- It is possible to build the tree incrementally because of this.
+- But there is something of a tradeoff between the initially assigned Q-value and its learned updates. This tradeoff differs over the course of 
+	learning and at different depths in the tree. Currently, we use a variation of the classic Q-value update method. See learning rate parameter discussion.
+
+It is necessary to start again with no examples when a leaf is split into new leaves because a partial path in the tree describes a 
+particular conjunction that isn't considered in the parent (the parent only sorts examples by single tests, not conjunctions of tests).
+Note that even storing the full list of Q-values for tests would not overcome this limitation.
+
+
+4. Using incremental trees raises questions about picking the learning rate parameter and whether it should ATTENUATE over time.
+
+Classically, you would have the learning rate diminish over time, for more efficient/rapid convergence.
+The premise is that you should increasingly trust the average of past examples over instances of new examples, so you change the learned value
+less for new values.
+
+On reflection, the concept should still apply to the incremental tree version. But revisit.
+
+Other parameters include "ratio of chance of explore to exploit"; "number of episodes" (or continue until convergence); "rewards and nonreward values".
+All three are linked, because they interact with convergence and the balance of perceived values.
+
+
+5. Question: Because we are using RRL in this nontraditional way, testing only for whether 'the' goal state (= target failure state) has been satisfied,
+we only have two possibilities for the immediate reward returned. Does this binary nature weaken the framework?
+
+Recall that an episode ends when the goal state is reached.
+Not much room for partial goal satisfaction.
+
+
+6. Note: Be careful to ensure consistency about negation and derived predicates like clear(X) wherever they might be encountered.
+
+
+7. Note that it's possible to set the learning parameter to ~0 so that rewards constantly replace each other. Then the initial Q-values from the parents are ignored.
+This leads to many, many more node splits, because variance is always easy to improve, because Q-values are just rewards and hence have less in common.
+
+
+8. There's a few interesting things coming from the timeful domain.
+
+For example, a person using equipment currently is likely to continue using it, so if the robot travels to them and serve them, it reaches its goal state.
+So this is a reasonably good strategy to learn, and simple; so the system tends to split on people using equipment early on in the tree.
+
+
+9. Major insight from partway through the process:
+
+- The blocks world scenarios used in the prototype didn't have a record, IN the domain, 
+	of the actions that had been applied or events that occurred in the current sequence of episodes.
+- And the blocks world domain is simple, so that just worked, mostly. There were some oddities, e.g., 
+	putting a block on a triangle was indistinguishable from putting the same block down.
+- And a few problems like the behavior of an example which starts in the goal state by random chance.
+
+So I was thinking in terms of the goal being a partial description of the state where the failure occurred. But that fails entirely for the robot butler domain:
+- There are a number of *different* reasons for failure of the 'serve' action, unlike with the blocks world. So there's a number of disparate goal states.
+- EACH goal state is impossible to fully describe because it can occur in vastly different circumstances.
+- Most importantly, without a record of actions, the state where the robot is at the same location as a person is indistinguishable 
+	from the one where it also tried to serve them and unexpectedly failed. So learning would not target the serve action.
+
+The obvious insight is that there must be an in-domain record of the robot's actions. 
+This allows the entire goal state (expressed by domain predicates) to collapse into the conjunction of
+(a) "the last action was serve(robot, person)" AND
+(b) "the person does not have a drink".
+
+
+10. Thoughts for generalisation
+
+During the generalisation step, how many training samples should be extracted from the BDT for the new decision tree?
+- The paper implies that all possible executability constraints are generated.
+- But we should take a number based on the value for different combinations.
+- Is this a case where you bias it so that you don't draw cases with too similar values that are too nearby to each other in the tree?
+- Although plausible, that's somewhat suject to the vagaries of the order that it decided to split in.
+- Could take everything, for a simple domain.
+
+Create a decision tree from the training examples (one tree for [the nonoccurrence of] each action).
+- Argument is that the order in which this decision tree is constructed doesn't matter; it's only representing the conjunctive form.
+- Could in fact store as e.g. Prolog lists.
+
+"Each path from the root node to a leaf is a candidate axiom with a corresponding value."
+- Each training sample is a permutation of action and attributes, and we can assign it a numeric value from the BDT produced by RRL.
+- In the new decision tree, a path from root to leaf doesn't (necessarily) completely describe the state, so a number of different training samples apply to the new leaf.
+- We can derive the leaf score from the examples' scores.
+- If a training sample's value was high, it was because it commonly led to the failure state (goal) it was trained on.
+- Therefore if a path in the new tree has high value, it's because its conjunctions of fluents commonly leads to failure of the action.
+
+
+11. The fact that RRL kicks in when unexpected and unaccountable failure occurs motivates the task of discovering undiscovered constraints.
+Is there any more explicit step that should prevent the system learning already-discovered axioms, though?
+The short paper does not mention it, but it should be possible to check, at or after the stage where the new logical tree is created.
+
+
+12. Other notes
+
+There are many ways to construct the BDT during reinforcement learning. ID3 and C4.5 are common. We chose a simple method described by a paper about RRL specifically.
+
+We should consider cacheing results for a certain number of episodes and *then* working on the BDT for the next episode.
+However, the incremental approach used means this is probably not a great source of inefficiency because we're not always rebuilding the tree from scratch.
+
+Fluents can of course be repeated as nonterminal nodes in the policy BDT, which is needed in general to represent similar state-action pairs.
+
+"The weight used for a given MDP is inversely proportional to the shortest distance between the state-action pair and the goal state based on the optimal policy for that MDP".
+=>
+actually means "distance from (1) the state resulting from applying A to S in the state-action pair <S,A> to (2) the goal state".
+
+
+
+= = = =  Proof: It's sufficient to only store the count, summed Q-values and summed squared Q-values.  = = = =
+
+By example... Suppose Q-values = {5, 6, 9, 10, 13}
+
+count: 5, sum: 43, sum of squared: 25+36+81+100+169 = 411
+=>
+mean: 8.6, squared mean: 73.96, mean sum of squared: 82.2
+difference: 8.24
+
+Now, doing it by calculating the per-example variance...
+1. Calculate mean
+2. For each example: find the squared difference from mean
+3. Calculate the mean of all squared differences
+
+mean: 8.6
+differences: 3.6, 2.6, 0.4, 1.4, 4.4
+squared differences: 12.96, 6.76, 0.16, 1.96, 19.36
+total squared differences: 12.96+6.76+0.16+1.96+19.36 = 41.2
+mean squared differences: 8.24
+
+Other form, via Wikipedia...
+
+var = (SumOfSquared - (Sum * Sum)/Count) / Count
+var = (411 - (43 * 43)/5) / (5-1)
+var = (411 - 369.8) / (5-1)
+var = 41.2 / 5 = 8.24
 
 */
 
