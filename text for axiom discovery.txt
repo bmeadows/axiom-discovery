@@ -90,24 +90,27 @@ The method described above only considers generalization within a specific MDP.
 To identify general domain axioms, the third step of our approach simulates similar 
 errors (to the one actually encountered due to plan step execution failure) and 
 considers the corresponding MDPs as well. 
-It is particularly concerned with \textit{attribute configurations}, i.e. the set of 
-grounded static values in the scenario under consideration. These configurations 
-describe that set of object properties which are fixed within a learning episode but 
-which may vary between episodes. It is these attributes we are interested in, because 
-this learning task assumes the robot has knowledge of physical configurations, but is 
-missing some executability constraints that are governed by static object properties 
--- for example, it is the base block's triangular shape that makes stacking another 
+It is particularly concerned with variations of the underlying 
+\textit{attribute configurations}, i.e., the set of grounded static values in the 
+scenario under consideration. These configurations describe that set of object 
+properties which are fixed within a learning episode but which may vary between 
+episodes. These attributes are most relevant to the learning task, because we 
+assume the robot has correct knowledge about physical configurations, but is missing 
+executability constraints that are governed by static object properties -- 
+for example, it is the base block's triangular shape that makes stacking another 
 block upon it fail.
 
-To this end, the system will change the attribute configurations of the scenarios it 
-is learning from while it is running. In doing so, it implicitly varies the goal 
-state it is seeking. We construct MDPs for a sample of 1% of the number of valid 
-attribute configurations of the domain (e.g., 1296 for a simple Blocks World example). 
+To this end, the system will change the attribute configurations of the scenarios 
+it is learning from while it is running. In exploring these permutations, it 
+implicitly varies the goal state it is seeking. We construct MDPs for a sample of 
+1% of the number of valid attribute configurations of the domain 
+(e.g., 1296 for a simple Blocks World example). 
 For each of these MDPs, we perform RRL as described above, but change the static 
-configuration a number of times for each MDP. Using five configurations will result 
-in learning ~5% of the attribute configuration space. These changes are made upon 
-reaching convergence in the current configuration, and the change is a minor one 
-each time so as to maximize the applicability of the current learned policy to the 
+configuration a number of times for each MDP. We use twenty configurations, 
+resulting in learning ~20% of the attribute configuration space. 
+These changes are made upon reaching convergence in the current configuration, 
+and the change is a minor one each time (changing a single value, where possible) 
+so as to maximize the applicability of the current learned policy to the 
 new attribute configuration. Each MDP begins with a new randomized static 
 configuration, and the same configuration is never returned to. 
 
