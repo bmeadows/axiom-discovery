@@ -59,20 +59,27 @@ and executability constraints such as:
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Section 4.2, `Simple Mario'
+% Examples of target executability constraints (haven't yet determined exactly what to use for experiments;
+% earlier ones were more complex and less successful)
 
-\subsection{Robot Butler}
-
-In the RB domain,
-
-
-
-
-
-
-
-
-
-
-
-
+% Somebody is using equipment and is in the kitchen
+applyActionToStateFinal(serve(_R, P, Loc)) :-
+	currentState(static(uses_k_equipment(P,true))),
+	currentState(fluent(at(P, Loc))),
+	currentState(static(roomtype(Loc,kitchen))),
+	!.
+	
+% Person's location is workshop
+applyActionToStateFinal(serve(_R, P, Loc)) :-
+	currentState(fluent(at(P, Loc))),
+	currentState(static(roomtype(Loc, workshop))),
+	!.
+	
+% Person is manager and it's not early in the week
+applyActionToStateFinal(serve(_R, P, _L)) :-
+	currentState(static(role(P, manager))),
+	currentState(static(earlyinweek(false))),
+	!.
+	
+	
+	
