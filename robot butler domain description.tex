@@ -39,7 +39,7 @@ We also introduce relations for people's roles, which can be \textit{engineer},
 \textit{salesperson}, or \textit{manager}, and for rooms, which can be 
 \textit{office space}, \textit{conference room}, \textit{kitchen}, or 
 \textit{workshop}. Additionally, the scenario has attributes describing whether 
-it is early or late in the week and whether people are using equipment. 
+it is early or late in the week. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -81,5 +81,10 @@ applyActionToStateFinal(serve(_R, P, _L)) :-
 	currentState(static(earlyinweek(false))),
 	!.
 	
+% Person's location is not in the kitchen
+applyActionToStateFinal(serve(_R, P, Loc)) :-
+	currentState(fluent(at(P, Loc))),
+	not(currentState(static(roomtype(Loc, kitchen)))),
+	!.
 	
 	

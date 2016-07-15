@@ -9,14 +9,75 @@ In the RB domain, the robot has to travel to the location of a person who
 has no beverage and serve them a drink. As described in Section~3, 
 \textit{move} actions move the robot between rooms, while \textit{serve} 
 actions result in a person at the robot's location to have a beverage. 
-Continuing for one hour (six actions), or serving both people, 
-terminates the episode.
+Continuing for one hour (six actions), failing to serve a drink, or serving 
+both people, terminates the episode.
+
+As well as the domain objects being in different locations, scenarios in the RB 
+domain can vary by a number of attributes. 
+Each person has one of three different \textit{roles} and each location is one 
+of four different types of \textit{room}. The scenario can take place either 
+\textit{early} or \textit{late} in the week. 
+The objective of the robot butler is to serve drinks to the people in a way 
+that will not result in episode termination -- any such unexpected termination 
+triggers RRL for discovering axioms.
+
+To evaluate...
+
+List at least three generalized axioms...
+
+The rules generated specify...
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+I've
+- updated the axiom discovery file; all yours
+- added the blocks world convergence plot `Convergence-data-BW' to the repository
+- added examples of target axioms to `robot butler domain description.tex'; all yours
+- split off a new file, `robot butler experimental.tex' that I'm still working on
+
+Next I'll
+- put together a plot comparing convergence over the robot butler domain, add that to the repository
+- keep working on the experimental setup/results text
+- get actual axiom results!
+- get some data on memory costs / complexity for RRL vs QL
+
+Note: Prolog 1 and 2 just have the `manager/week' failure; Prolog 3 and 4 just have the `workshop location' failure.
+
+--- examples of axioms that the butler domain actually generates
+
+should be `manager'
+not_occurs(serve(_G12656,_G12657,_G12658)) :- not(earlyinweek), not(role(_G12657,engineer)), not(role(_G12657,salesperson)), end.
+<Q: 6.875>
+
+not_occurs(serve(_G1335,_G1336,_G1337)) :- not(earlyinweek), end.
+<Q: 10.0>
+
+finalexample(action(serve(rob1, p1, loc1)), [[], [roomtype(loc1, conference_room), roomtype(loc1, workshop)]], 0.11021267529252246).
+finalexample(action(serve(rob1, p1, loc1)), [[roomtype(loc1, kitchen)], [roomtype(loc1, conference_room), roomtype(loc1, workshop)]], 0.09697907199456497).
+
+finalexample(action(serve(rob1, p1, loc1)), [[], [roomtype(loc1, conference_room), roomtype(loc1, workshop)]], 0.11021267529252246).
+
+-----------
+
+How about `only in the kitchen'?
+Next tests are for that.
+finalexample(action(serve(rob1, p1, loc1)), [[roomtype(loc1, office_space)], []], 10.01).
+finalexample(action(serve(rob1, p1, loc1)), [[], [roomtype(loc1, workshop), roomtype(loc2, kitchen)]], 6.809210526315789).
+not_occurs(serve(_G6275,_G6276,_G6277)) :- roomtype(_G6277,office_space), not(roomtype(_G6277,workshop)), end.
+<Q: 10.003214453655879>
+finalexample(action(serve(rob1, p1, loc1)), [[roomtype(loc1, office_space)], [role(p1, salesperson)]], 10.005667434758369).
+finalexample(action(serve(rob1, p1, loc1)), [[], [earlyinweek, roomtype(loc1, kitchen)]], 10.082334212979283).
+
+
+1. Grab data I know is from RRL robot domain, put it in a bunch of columns, try it out on copy of worksheet
+2. Do QL for robot domain, look at data there
 
 
 
-
-
-
+1. I can find convergence patterns in the files - exactly ten 10s (or whatever) in a row!!
+Can pad from there!!!!
+2. Maybe problem is it thinks convergence is hitting, early... Try extending to a huge number and trying again!
 
 
 
