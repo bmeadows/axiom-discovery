@@ -116,26 +116,27 @@ knowledge about physical configurations, but is missing executability constraint
 that are governed by static object properties -- for example, it is the base 
 block's triangular shape that makes stacking another block upon it fail.
 
-Normally learning would be terminated after convergence of the Q-values or by 
-reaching some maximum number of episodes. Our approach uses a number of MDPs, which
-1. Start with a randomized non-repeat attribute configuration;
-2. Run learning episodes until convergence or until meeting some limit;
-3. Alter the attribute configuration one literal at a time in domain-valid ways;
-3.(a) until arriving at a variant non-repeat attribute configuration;
-4. Again run learning episodes;
-5. Repeating this whole process until a certain number of attribute configurations
-   have been tried for each MDP.
-
-/* This paragraph has text extending parts of that numeric list */
-By changing the attribute configurations of the scenarios the system is learning 
-from while it is running, the robot explores a number of permutations that implicitly 
-vary the goal state. We construct MDPs for a sample of 1% of the number of valid 
+Normally, learning would be terminated after convergence of the Q-values or by 
+reaching some maximum number of episodes. 
+However, we construct MDPs for a sample of 1% of the number of valid 
 attribute configurations of the domain (e.g., 1296 for a simple Blocks World example). 
 For each of these MDPs, we perform RRL as described above, but change the static 
-configuration a number of times for each MDP. By using fifty configurations for 
-each MDP and one MDP for every 100 possible attribute configurations, 
-the system explores ~50% of the attribute configuration space. 
-By making only minor changes to the attribute configuration where possible within 
+configuration a number of times for each MDP. Each learning instance will
+/begin
+1. Start with a randomized non-repeated attribute configuration;
+2. Run learning episodes until convergence or until meeting some limit;
+3. Alter the attribute configuration one literal at a time in domain-valid ways, 
+until arriving at a variant non-repeated attribute configuration;
+4. Again run learning episodes;
+5. Repeat this whole process until a certain number of attribute configurations
+   have been tried for each MDP.
+/end
+By changing the attribute configurations of the scenarios the system is learning 
+from while it is running, the robot explores a number of permutations that implicitly 
+vary the goal state. 
+By using fifty configurations for each MDP and one MDP for every 100 possible attribute 
+configurations, the system explores ~50% of the attribute configuration space. 
+Also, by making only minor changes to the attribute configuration where possible within 
 each MDP, we maximize the applicability of the current learned policy to the 
 new attribute configuration.
 
