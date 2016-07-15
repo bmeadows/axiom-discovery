@@ -92,27 +92,29 @@ ability to differentiate between candidates in discovering previously unknown ax
 
 %%%%%%%%%%%%%%%%%%%%
 
-% LIST OF ACTUAL EXAMPLES GENERATED FOR BLOCKS WORLD
-% TO BE USED EARLIER IN PAPER
+% ACTUAL EXAMPLES GENERATED FOR BLOCKS WORLD, TO BE USED EARLIER IN PAPER
 
 % Verdict: reasonably consistent. e.g...
 
-%finalcandidate(action(puton(grip1, b2, b1)), [[], [colour(b1, green)]], 10.0).
-%finalcandidate(action(puton(grip1, b2, b1)), [[colour(b2, blue)], []], 8.455882352941176).
-%finalcandidate(action(puton(grip1, b2, b1)), [[shape(b3, cube)], [colour(b3, blue)]], 8.5).
+%finalcandidate(action(puton(grip1, b2, b1)), [[], [color(b1, green)]], 10.0).
+%finalcandidate(action(puton(grip1, b2, b1)), [[color(b2, blue)], []], 8.455882352941176).
+%finalcandidate(action(puton(grip1, b2, b1)), [[shape(b3, cube)], [color(b3, blue)]], 8.5).
 %finalcandidate(action(puton(grip1, b2, b1)), [[shape(b1, triangleprism)], []], 10.000518429239477).
-%finalcandidate(action(puton(grip1, b2, b1)), [[colour(b4, red), shape(b4, triangleprism)], []], 9.166666666666668).
-%finalcandidate(action(puton(grip1, b2, b1)), [[], [colour(b4, green)]], 8.012820512820513).
+%finalcandidate(action(puton(grip1, b2, b1)), [[color(b4, red), shape(b4, triangleprism)], []], 9.166666666666668).
+%finalcandidate(action(puton(grip1, b2, b1)), [[], [color(b4, green)]], 8.012820512820513).
 % => top candidate
 $\neg occurs(puton(A,B,C)) :- shape(C,triangleprism)$
 
-%finalcandidate(action(puton(grip1, b2, b1)), [[], [colour(b3, green), shape(b1, cube)]], 10.000004427419416).
+%finalcandidate(action(puton(grip1, b2, b1)), [[], [color(b3, green), shape(b1, cube)]], 10.000004427419416).
 %finalcandidate(action(puton(grip1, b2, b1)), [[shape(b3, triangleprism)], []], 6.667670906480872).
-%finalcandidate(action(puton(grip1, b2, b1)), [[colour(b1, red)], []], 8.0).
+%finalcandidate(action(puton(grip1, b2, b1)), [[color(b1, red)], []], 8.0).
 %finalcandidate(action(puton(grip1, b2, b1)), [[shape(b3, cube)], []], 9.0).
-%finalcandidate(action(puton(grip1, b2, b1)), [[colour(b4, blue)], [shape(b3, cube)]], 6.875).
+%finalcandidate(action(puton(grip1, b2, b1)), [[color(b4, blue)], [shape(b3, cube)]], 6.875).
 % => top candidate
-$\neg occurs(puton(A,B,C)) :- not(colour(b3,green)), not(shape(C,cube)$
+$\neg occurs(puton(A,B,C)) :- not(color(b3,green)), not(shape(C,cube)$
+
+% Only occasionally does it not manage to explore the right configurations, 
+% and end up with e.g. all rules about colors.
 
 %%%%%%%%%%%%%%%%%%%%
 
