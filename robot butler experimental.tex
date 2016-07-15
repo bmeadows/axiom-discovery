@@ -30,4 +30,95 @@ The rules generated specify...
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+Tested with the `manager/week' failure; and either the `workshop location' failure or the more specific `kitchen only' failure mode.
 
+Examples of axioms that the butler domain actually generates:
+
+$\neg occurs(serve(A,B,C)) :- \neg earlyinweek, \neg role(B,engineer), \neg role(B,salesperson)$
+Note that specifying the B is not an engineer or salesperson is a convoluted way of saying they are a manager.
+
+We also get
+$\neg occurs(serve(A,B,C)) :- \neg earlyinweek$
+Not specific enough.
+
+What about not serving in the workshop?
+$\neg occurs(serve(rob1, p1, loc1)) :- \neg roomtype(loc1, conference\_room), \neg roomtype(loc1, kitchen)$
+i.e. another roundabout way of saying it fails if in the workshop or office. Too general again. Similarly
+\textit{\neg occurs(serve(rob1, p1, loc1)) :- \neg roomtype(loc1, conference\_room), 
+      \neg roomtype(loc1, workshop)}
+
+$\neg occurs(serve(rob1, p1, loc1)) :- roomtype(loc1, kitchen)], 
+     \neg roomtype(loc1, conference\_room), \neg roomtype(loc1, workshop)$
+Note the unnecessary bits.
+
+What about only in kitchen?
+
+not_occurs(serve(_G6275,_G6276,_G6277)) :- roomtype(_G6277,office_space), not(roomtype(_G6277,workshop))
+
+finalexample(action(serve(rob1, p1, loc1)), [[roomtype(loc1, office_space)], [role(p1, salesperson)]]
+
+finalexample(action(serve(rob1, p1, loc1)), [[], [earlyinweek, roomtype(loc1, kitchen)]], 
+
+
+
+
+We would expect that when the system is unable to find the perfectly matching generalised axiom, the value it assigns to the leading candidates is much lower. And this is what we observe in practise.
+
+
+%occurs(serve(_G12656,_G12657,_G12658))) :- not(earlyinweek), not(role(_G12657,engineer)),
+% not(role(_G12657,salesperson)), end. <Q: 6.875>
+%
+%not_occurs(serve(_G1335,_G1336,_G1337)) :- not(earlyinweek), end. <Q: 10.0>
+%finalexample(action(serve(rob1, p1, loc1)), [[], [roomtype(loc1, conference_room),
+% roomtype(loc1, workshop)]], 0.11021267529252246).
+%finalexample(action(serve(rob1, p1, loc1)), [[roomtype(loc1, kitchen)],
+% [roomtype(loc1, conference_room), roomtype(loc1, workshop)]], 0.09697907199456497).
+%finalexample(action(serve(rob1, p1, loc1)), [[], [roomtype(loc1, conference_room),
+% roomtype(loc1, workshop)]], 0.11021267529252246).
+
+%finalexample(action(serve(rob1, p1, loc1)), [[roomtype(loc1, office_space)], []], 10.01).
+%finalexample(action(serve(rob1, p1, loc1)), [[], [roomtype(loc1, workshop), roomtype(loc2, kitchen)]],
+% 6.809210526315789).
+%not_occurs(serve(_G6275,_G6276,_G6277)) :- roomtype(_G6277,office_space), not(roomtype(_G6277,workshop)),
+% end.
+%<Q: 10.003214453655879>
+%finalexample(action(serve(rob1, p1, loc1)), [[roomtype(loc1, office_space)], [role(p1, salesperson)]],
+% 10.005667434758369).
+%finalexample(action(serve(rob1, p1, loc1)), [[], [earlyinweek, roomtype(loc1, kitchen)]], 10.082334212979283).
+
+%%%%%%%%%%%%%%%%%%%%
+
+% LIST OF ACTUAL EXAMPLES GENERATED FOR BLOCKS WORLD:
+
+-
+
+%%%%%%%%%%%%%%%%%%%%
+
+% example counts, two runs each
+% RRL, BW	|	439 / 297		|	368 (500-1000 nodes total)
+% RRL, RB	|	235 / 224		|	229	(400-500 nodes total)
+% Q-L, BW	|	20155 / 14814	|	17484
+% Q-L, RB	|	1934 / 1977		|	1955
+
+For basic Q-Learning, the data for an example (including its Q-Value) is stored 
+in a record. For Q-RRL, it is stored in a leaf. 
+One of the motivations for the relational reinforcement learning work by 
+Driessens et al. (2001) is that it is expensive to keep track of a monotonically 
+increasing number of examples, and building trees from this anew each episode 
+becomes correspondingly more costly.  
+Memory costs can be estimated by counting the number of records and leaves 
+generated for Q-Learning and Q-RRL respectively, over all MDPs produced in the 
+course of learning. 
+We find that using Q-RRL with incremental tree learning reduces the number of 
+records drastically: by between 89\% (for RB) and 98\% (for BW). 
+
+Even if we count all nodes in the BDTs towards the complexity of the framework, 
+using Q-RRL results in a reduction in complexity of at least 75\%.
+This is supported by an observed reduction in processing time when we use Q-RRL.
+
+%500/17484=0.029
+%1000/17484=0.057
+%400/1955=0.205
+%500/1955=0.256
+
+%%%%%%%%%%%%%%%%%%%%
