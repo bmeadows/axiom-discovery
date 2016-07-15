@@ -34,12 +34,13 @@ a function of the number of episodes. Incremental Q-RRL converges faster than
 Q-learning, although the difference is less large than in the Blocks World example 
 shown earlier. 
 
-We tested the system on RB with missing constraints, namely that managers only accept 
-beverages if it is early in the week, and either that drinks cannot be served in the 
+We tested the system on the RB domain with missing constraints, 
+namely that managers only accept beverages if it is early in the week; 
+and either that drinks cannot be served in the 
 workshop or that they can \textit{only} be served in the kitchen.
 
-The system was less effective than the close to 100\% accuracy it attained for 
-Blocks World, possibly due to having multiple concurrent missing axioms. 
+The system was less accurate than it was for Blocks World, 
+possibly due to having multiple concurrent missing axioms. 
 Often the sole highest-valued candidate was not a correct executability constraint, 
 but many of the higher-valued candidates did tend to be close to correct, often 
 being either too general or carrying additional unnecessary attributes.
@@ -86,15 +87,29 @@ $\neg occurs(serve(A,B,C)) :- earlyinweek(false), \neg roomtype(C, kitchen)$
 
 We would expect that when the system is unable to find the perfectly matching 
 generalised axiom, the value it would assign to the leading candidates is then lower. 
-This is indeed what we observe in practise.
+This is indeed what we observe in practise, and it indicates the system's 
+ability to differentiate between candidates in discovering previously unknown axioms. 
 
-Successful discovery of previous unknown axioms.
+%%%%%%%%%%%%%%%%%%%%
 
+% LIST OF ACTUAL EXAMPLES GENERATED FOR BLOCKS WORLD
+% TO BE USED EARLIER IN PAPER
 
+%finalexample(action(puton(grip1, b2, b1)), [[], [colour(b1, green)]], 10.0).
+%finalexample(action(puton(grip1, b2, b1)), [[], [colour(b1, green), shape(b3, triangleprism)]], 7.440476190476192).
+%finalexample(action(puton(grip1, b2, b1)), [[colour(b2, blue)], []], 8.455882352941176).
+%finalexample(action(puton(grip1, b2, b1)), [[shape(b3, cube)], [colour(b3, blue)]], 8.5).
+%finalexample(action(puton(grip1, b2, b1)), [[shape(b1, triangleprism)], []], 10.000518429239477).
+%finalexample(action(puton(grip1, b2, b1)), [[colour(b4, red), shape(b4, triangleprism)], []], 9.166666666666668).
+%finalexample(action(puton(grip1, b2, b1)), [[], [colour(b4, green)]], 8.012820512820513).
+%
+$\neg occurs(puton(A,B,C)) :- shape(C,triangleprism)$
 
 
 
 %%%%%%%%%%%%%%%%%%%%
+
+% RESULTS SUPPORTING SUPERIORITY OF Q-RRL
 
 % example counts, two runs each
 % RRL, BW	|	439 / 297		|	368 (500-1000 nodes total)
@@ -124,3 +139,4 @@ This is supported by an observed reduction in processing time when we use Q-RRL.
 %500/1955=0.256
 
 %%%%%%%%%%%%%%%%%%%%
+
