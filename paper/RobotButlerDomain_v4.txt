@@ -1,0 +1,78 @@
+==== Robot butler domain. ====
+
+- A robot butler r1 has to deliver tea to 3 people (p1, p2, p3) in an office building.
+- The building has 4 rooms (office space, conference room, kitchen, and workshop).
+- The 3 people can be in any one of these locations. The robot can be in any one room.
+- The robot delivers beverages at different times of the day: 10, 12, 2, 4, 6, 8.
+
+States of MDP:
+#person in #location.
+#robot's location.
+#hour of the day.
+
+Formula for total number of states:
+
+H*(R^(N*T)) : T is the truth value for whether a person has a drink, R is number of rooms, N is number of people + robots, H is number of hours.
+=> For the described scenario, 6*(4^(4*2)) = 393,216 states
+
+goal states:
+#person has #drink in #location.
+
+statics:
+hour = {10, 12, 2, 4, 6, 8}
+role = {salesperson, engineer, manager}
+room = {office_space, conference_room, kitchen, workshop}
+using_equipment = {true, false}
+
+Fluents:
+- Location of robot changes when the robot moves.
+- Location of a person changes when the person moves.
+- People moving is an oracle-prescribed exogenous action; it is deterministic based on hour of day but is unknown to the robot.
+- However, assume the robot fully perceives the state (it does not 'expect' the deterministic movement but is aware of its outcomes).
+- Person has a drink if the person didn't have a drink before and they are at the same location as the robot and the robot serves the person.
+
+Derived predicates:
+time = {morning, afternoon, evening}
+It is #morning if hour is 10 or 12.
+It is #afternoon if hour is 2 or 4.
+It is #evening if hour is 6 or 8.
+
+Robot can do these actions:
+move(#robot, #room).
+serve(#person).
+
+What the robot knows:
+~ It cannot be in more than 1 location at once.
+~ People cannot be in in more than 1 different room at once.
+- The robot cannot deliver a beverage if it is not in the same location as the person.
+- Engineers are using equipment if they are in the workshop; anyone is using equipment if they are in the kitchen.
+
+What it doesn't know:
+- impossible serve(#person) if person using equipment.
+- impossible serve(#person) if person's location is workshop.
+- impossible serve(#person) if person's location is conference_room and hour is not 12.
+- impossible serve(#person) if person is engineer and time is not afternoon.
+- impossible serve(#person) if person moves away just as the robot is trying to serve them.
+
+Possible obstacle:
+- If movement is deterministic based on hour, the robot may learn a bad constraint based on the associated hour (given many examples).
+- Because it does already know that it can't serve a drink from the wrong location.
+
+---
+
+Tacitly:
+- As with blocks world example, we have same binary goal possibilities...
+- Either the perceived state matches the unexpected failure state that we are learning, so accrue value, or it does not, so no reward.
+- Will now need to adjust for partial matches (blocks world was fully described).
+- Part of this will be seeing whether the system unnecessarily incorporates e.g. hours into learned constraints.
+- The nuanced part is that we can have some unknown constraints which *do* involve hours, others the derived predicates for times, and other which are not time-sensitive.
+
+---
+
+==== Possible extensions/changes to scenarios: ====
+- The robot could be on different floors of the building (i.e. The combination of rooms changes). 
+- Different mix of roles of people in a particular floor (e.g. 2 salesman and a manager).
+- Have location matter. Add a hallway that acts as a nexus between rooms. All movement is now constrained, and exogenous person-movements are now more plausible.
+- Model the drinks as domain objects: Robot has to pick them up from the kitchen, carry them one at a time, return.
+- Expand to learn about failures of the 'move' action alongside failures of the 'serve' action.
+

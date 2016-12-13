@@ -1,0 +1,192 @@
+==== Reference sheet, current program settings I'm working with: ====
+
+C = 1296 possible static configs in Blocks World scenarios
+C = 1152 possible static configs in Robot Butler scenarios
+
+Number of MDPs: C/100
+Number of static config changes per MDP: 50
+Each MDP starts with random static config and makes small changes
+(so cover ~50% of the static space in total)
+
+reward_positive: 10
+reward_negative: 0
+
+explore_parameter: 0.1
+
+learning_rate_parameter: 0.2
+
+Convergence: Less than 2% change required, for 10 consecutive generations
+Change static config after convergence
+
+Max time to wait for convergence: 250 episodes
+
+Prune candidate axioms whose value is less than reward_positive/10
+
+--------------------------------------------------------------------------------
+
+1. New caption for binary decision tree, Figure 6:
+
+Subset of a binary decision tree (BDT) for a specific scenario in the Blocks 
+World domain, as might be seen while learning is ongoing. This tree is used to 
+compute the policy for the remainder of the learning process, during which it 
+will in turn be altered to reflect the outcomes of that process. Ellipses 
+indicate an elided part of the tree. Numbers at the leaves reflect Q-values. 
+
+--------------------------------------------------------------------------------
+
+2. New caption for candidate decision tree, Figure 7:
+
+Subset of a decision tree visualizing candidate axioms related to an action 
+in the Blocks World domain. This tree describes a possible executability 
+constraint on the \textit{move(A,D)} action. Ellipses indicate an elided part 
+of the tree. Numbers attached to the leaves reflect amassed mean values.
+
+--------------------------------------------------------------------------------
+
+3. Paragraphs describing the process from construction of a binary decision tree
+   through generalization and construction of candidates.
+
+The next step is to estimate the Q-values of the state-action pairs Q(s,a) for 
+particular scenarios (pairs of goal and initial states). Basic RL algorithms 
+for estimating Q-values, such as Q-learning and SARSA, do not scale well with 
+large increases in the state space size, becoming computationally intractable. 
+They also do not generalize to relationally equivalent states. To ameliorate 
+this, we use a relational representation: after an episode of Q-learning 
+(one iteration from start to end of the scenario), all state-action pairs that 
+have been visited, along with their estimated Q-values, are used to update a 
+binary (i.e., logical) decision tree (BDT). The path from the root node to a 
+leaf node corresponds to one pair <s, a>, where a is an action and s is a 
+partial state description. Individual nodes in the BDT correspond to true/false 
+tests (specific fluents or actions) with which the node's two sub-branches are 
+associated. 
+
+Rather than generating the tree again for each iteration, we use the RRL-TG 
+algorithm (Driessens, Ramon, & Hendrik, 2001) for incremental decision tree 
+learning. Driessens et al. were motivated by four key problems with basic 
+Q-learning, which apply to our work: 
+- Storing a monotonically increasing set of examples in the form of 
+<state, action, Q-value> triples produces overheads;
+- Every new example incurs the cost of looking up its previous stored value; 
+- Building a tree from scratch after each episode is computationally expensive; 
+- An example receives an updated Q-value when exactly the same state-action pair 
+is encountered, but should receive one when an example in the same cluster 
+(leaf) is encountered.
+The advantages of RRL-TG are fourfold in that they address these problems.
+
+RRL-TG is a fully incremental inductive learning algorithm operating over a 
+dynamic decision tree. For each current leaf, it retains data on each possible 
+test (a fluent, static attribute, or action, in the case of the binary tree) 
+which could be used to split the leaf. Any example the system encounters is 
+sorted down the current tree from the root and updates the test data in the 
+leaf it arrives at. After each learning episode, the framework checks whether 
+there is sufficient data stored at any leaf to split that leaf.
+
+The data stored at a leaf consists of the number of examples on which each 
+valid test succeeds or fails, the sum of their Q-values, and the sum of their 
+squared Q-values. This is sufficient to calculate the variance of the examples. 
+When a potential split on some test would produce a significant reduction in 
+variance, that split is implemented. The test is added to that node and the new 
+leaves have zeroed data and initial Q-values based on the data that had been 
+stored at their parent. This initial value is based only on the examples 
+encountered in the last generation of the tree, and the current one. 
+
+Through this process, examples do not need to be stored, previous 
+stored values are not checked, the tree is never rebuilt, and examples' 
+Q-values are updated based on clusters, not individual examples 
+(Driessens, Ramon, & Hendrik, 2001). This leads to significant performance 
+improvements for a Q-learning system.
+
+The BDT is altered after every iteration, having its predicted Q-values 
+changed and sometimes also with a test and new nodes added to the tree. This 
+means the policy in the next iteration is already updated. When learning is 
+terminated, the BDT relationally represents the experiences of the robot. 
+Figure 6 illustrates a subset of a BDT being constructed during the 
+learning process for the Blocks World domain.
+
+The method described above only considers generalization within a specific MDP. 
+To identify general domain axioms, the third step of our approach simulates similar 
+errors (to the one actually encountered due to plan step execution failure) and 
+considers the corresponding MDPs as well. 
+Specifically, it varies the underlying \textit{attribute configurations}, i.e., 
+the set of grounded static values in the scenario under consideration. 
+These configurations describe the set of object properties which are fixed within 
+an episode of learning but which may vary between episodes. These attributes are 
+most relevant to the learning task, because we assume the robot has correct 
+knowledge about physical configurations, but is missing executability constraints 
+that are governed by static object properties -- for example, it is the base 
+block's triangular shape that makes stacking another block upon it fail.
+
+Normally, learning would be terminated after convergence of the Q-values or by 
+reaching some maximum number of episodes. 
+However, we construct MDPs for a sample of 1% of the number of valid 
+attribute configurations of the domain (e.g., 1296 for a simple Blocks World example). 
+For each of these MDPs, we perform RRL as described above, but change the static 
+configuration a number of times for each MDP. Each learning instance will
+/begin
+1. Start with a randomized non-repeated attribute configuration;
+2. Run learning episodes until convergence or until meeting some limit;
+3. Alter the attribute configuration one literal at a time in domain-valid ways, 
+until arriving at a variant non-repeated attribute configuration;
+4. Again run learning episodes;
+5. Repeat this whole process until a certain number of attribute configurations
+   have been tried for each MDP.
+/end
+By changing the attribute configurations of the scenarios the system is learning 
+from while it is running, the robot explores a number of permutations that implicitly 
+vary the goal state. 
+By using fifty configurations for each MDP and one MDP for every 100 possible attribute 
+configurations, the system explores ~50% of the attribute configuration space. 
+Also, by making only minor changes to the attribute configuration where possible within 
+each MDP, we maximize the applicability of the current learned policy to the 
+new attribute configuration.
+
+The fourth step identifies candidate domain axioms; specifically, executability 
+constraints. The head of such an axiom contains a grounded action, and the body 
+contains a set of one or more attributes that influence (or are influenced by) 
+the action. Because these deal with 
+actions and static attributes, we can perform generalization by taking each leaf 
+from each BDT, extracting a partial state/action description using its path to its 
+root, and eliding the fluents from that description. 
+The choice of action is determined by the current learning scenario, 
+whose goal state specifies that some action(s) had an unexpected outcome. 
+We create this set of partial examples and then find those whose contents are 
+identical (because they came from different BDTs or differentiating fluents were 
+removed). The system creates a \textit{generalized} example which records the 
+arithmetic mean of the Q-values stored at their leaves.
+
+Although structured in a table, the resulting set of examples could be modeled as a 
+tree whose root node corresponds to the non-occurrence of the action, intermediate 
+nodes correspond to attributes of objects involved in the action (i.e., relevant fluents), 
+and leaf nodes average the values of the training samples grouped under that node. 
+There is also an opportunity for pruning at this stage. Recall that any branch in the 
+BDT we constructed for each MDP may be a partial description. Because of this, 
+there may be cases of examples which are reduced to only an action, without attributes, 
+or which do not mention a positive action. These can safely be excised.
+
+The instantiated examples can be \textit{lifted} to replace their values with variables. 
+This amounts to setting a new variable for each atomic argument to the negated action 
+in the axiom's head, and replacing that atom with the variable throughout the candidate. 
+Figure 7 illustrates a subset of the results, again modeled as a tree, for one specific 
+action, 'move A to D', in the Blocks World. 
+We also prune this tree, by removing those candidates whose final averaged value is less 
+than N/10 where N is the maximum positive reward that can be assigned during the learning 
+process.
+Because this tree only concerns a single action, the most effective way to select a 
+candidate axiom to add to the knowledge base is to choose the highest-scoring one, which 
+was derived from the cases which most reliably led to the failure state (or a variation on it). 
+However, for cases like the Robot Butler demain, where multiple different failure modes 
+could be learned at once, we may heuristically select several high-valued candidates whose 
+symbolic contents do not overlap.
+
+--------------------------------------------------------------------------------
+
+@INPROCEEDINGS{Driessens01speedingup,
+    author = {Kurt Driessens and Jan Ramon and Hendrik Blockeel},
+    title = {Speeding up Relational Reinforcement Learning Through the Use of 
+              an Incremental First Order Decision Tree Learner},
+    booktitle = {Proceedings of the Thirteenth European Conference on Machine Learning},
+    year = {2001},
+    pages = {97--108},
+    publisher = {Springer-Verlag}
+}
+
