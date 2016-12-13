@@ -1,0 +1,15 @@
+Requires SWI-Prolog (version 6 or higher) to run.
+
+The framework is contained in the main file 'qlearningwithRRL_foraffordances_clean.pl'. Rules and facts from other .pl files are included according to the parameterization given in this file.
+
+To run, first modify the first 90 lines of the main file to set these and other parameters as appropriate. This should include loading a file describing the test domain, such as 'domain_blocks_clean.pl' or 'domain_butler_clean.pl'.
+
+Then consult the main file with SWI-Prolog (swipl.exe).
+
+Enter
+
+     run('filename').
+
+to begin processing.
+
+
