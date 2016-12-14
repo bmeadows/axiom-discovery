@@ -17,15 +17,15 @@ initial_learning_rate_parameter/1, last_split_at/1, sumQCollector/1, countCollec
 %%%%% Include ONE of the following domains %%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%:- include(domain_blocks_clean).
-:- include(domain_butler_clean).
+:- include(domain_blocks_clean).
+%:- include(domain_butler_clean).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% Include ONE of the following run modes %%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-:- include(run_verbose).
-%:- include(run_quiet).
+%:- include(run_verbose).
+:- include(run_quiet).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Include ONE of the following debug modes %%%
@@ -45,7 +45,7 @@ initial_learning_rate_parameter/1, last_split_at/1, sumQCollector/1, countCollec
 %%%%%%% Most important parameter to vary %%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-percent_of_object_config_space_to_search(1). % Percentage of the space of object configurations to explore
+percent_of_object_config_space_to_search(5). % Percentage of the space of object configurations to explore
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%% Other framework parameters %%%%%%%%%%
@@ -1401,19 +1401,20 @@ moveExamplesDown(_NodeID, _ChildYes, _ChildNo, _NodeTest) :- !.
 calculateVarianceAtLeafNode(ID, Variance) :-
 	enter_register('calculate_variance_at_leaf'),
 	% Look at all examples at leaf
-	enter_register('calculate_variance_at_leaf:findall1'),
-	findall(Count, leaf_stored_example(ID, _, Count, _, _), CountList),
-	exit_register('calculate_variance_at_leaf:findall1'),
-	enter_register('calculate_variance_at_leaf:findall2'),
-	findall(SumQ, leaf_stored_example(ID, _, _, SumQ, _), SumQList),
-	exit_register('calculate_variance_at_leaf:findall2'),
-	enter_register('calculate_variance_at_leaf:findall3'),
-	findall(SumSquareQ, leaf_stored_example(ID, _, _, _, SumSquareQ), SumSquareQList),
-	exit_register('calculate_variance_at_leaf:findall3'),
+	%enter_register('calculate_variance_at_leaf:findall1'),
+	%findall(Count, leaf_stored_example(ID, _, Count, _, _), CountList),
+	%exit_register('calculate_variance_at_leaf:findall1'),
+	%enter_register('calculate_variance_at_leaf:findall2'),
+	%findall(SumQ, leaf_stored_example(ID, _, _, SumQ, _), SumQList),
+	%exit_register('calculate_variance_at_leaf:findall2'),
+	%enter_register('calculate_variance_at_leaf:findall3'),
+	%findall(SumSquareQ, leaf_stored_example(ID, _, _, _, SumSquareQ), SumSquareQList),
+	%exit_register('calculate_variance_at_leaf:findall3'),
 	enter_register('calculate_variance_at_leaf:sums'),
-	sum_list(CountList, Count),
-	sum_list(SumQList, SumQ),
-	sum_list(SumSquareQList, SumSquareQ),
+	%sum_list(CountList, Count),
+	%sum_list(SumQList, SumQ),
+	%sum_list(SumSquareQList, SumSquareQ),
+	getVarianceComponents(ID, Count, SumQ, SumSquareQ),
 	!,
 	exit_register('calculate_variance_at_leaf:sums'),
 	enter_register('calculate_variance_at_leaf:find'),
@@ -1421,6 +1422,20 @@ calculateVarianceAtLeafNode(ID, Variance) :-
 	exit_register('calculate_variance_at_leaf:find'),
 	exit_register('calculate_variance_at_leaf').
 
+adjustEx(A, B, C) :-
+	c1(X), New1 is X+A,
+	c2(Y), New2 is Y+B,
+	c3(Z), New3 is Z+C,
+	retract(c1(_)), retract(c2(_)), retract(c3(_)),
+	assert(c1(New1)), assert(c2(New2)), assert(c3(New3)).
+
+getVarianceComponents(ID, CountTotal, SumQTotal, SumSquareQTotal) :-
+	assert(c1(0)), assert(c2(0)), assert(c3(0)),
+	forall(leaf_stored_example(ID, _, Coun, SumQ, SSqQ), adjustEx(Coun, SumQ, SSqQ)),
+	c1(CountTotal), c2(SumQTotal), c3(SumSquareQTotal),
+	retract(c1(_)), retract(c2(_)), retract(c3(_)).
+
+	
 findVariance(Count, Sum, SumOfSquared, Variance) :-
 	(((Count == 0);(Sum == 0)) -> Variance = 100000
 	;
