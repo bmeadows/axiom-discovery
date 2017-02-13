@@ -20,7 +20,7 @@ A batch processing interface is available using
 
 which can be run multiple times updating the run data that is stored in the output files each time.
 
-Additional domain-specific files are included providing functionality to determine the proportion of bad output constraints that are overspecifications of ground truth constraints to those that are genuine errors.
+Three additional domain-specific files ('analysis-rb-serve', 'analysis-rb-pickup', and 'analysis-bw') provide functionality for analysing bad output constraints. They determine the proportion of these false positives that are overspecifications of ground truth constraints to those that are genuine errors.
 
-These are 'analysis-rb-serve', 'analysis-rb-pickup', and 'analysis-bw'.
+
 
