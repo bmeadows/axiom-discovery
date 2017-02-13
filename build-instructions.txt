@@ -1,10 +1,12 @@
 Requires SWI-Prolog (version 6 or higher) to run.
 
-The framework is contained in the main file 'qlearningwithRRL_foraffordances_clean.pl'. Rules and facts from other .pl files are included according to the parameterization given in this file.
+The framework is contained in the main file 'qlearningwithRRL_foraffordances_new.pl'. Rules and facts from other .pl files are included according to the parameterization given in this file.
 
-To run, first modify the first 90 lines of the main file to set these and other parameters as appropriate. This should include loading a file describing the test domain, such as 'domain_blocks_clean.pl' or 'domain_butler_clean.pl'.
+To run, first modify the first 100 lines of the main file to set these and other parameters as appropriate. This should include loading a file describing the test domain, such as 'domain_blocks_new.pl' or 'domain_butler_new.pl'.
 
-Then consult the main file with SWI-Prolog (swipl.exe).
+(The file 'domain_butler_new.pl' is configured to learn failure cases for one particular action, and must be reconfigured to find constraints for other actions.)
+
+To begin learning, consult the main file with SWI-Prolog (swipl.exe).
 
 Enter
 
@@ -12,4 +14,13 @@ Enter
 
 to begin processing.
 
+A batch processing interface is available using
+
+    runbatch('counterFilename', 'errorFilename', 'timeFilename').
+
+which can be run multiple times updating the run data that is stored in the output files each time.
+
+Additional domain-specific files are included providing functionality to determine the proportion of bad output constraints that are overspecifications of ground truth constraints to those that are genuine errors.
+
+These are 'analysis-rb-serve', 'analysis-rb-pickup', and 'analysis-bw'.
 

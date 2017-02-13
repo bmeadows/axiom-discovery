@@ -1,4 +1,6 @@
 
+registerson(true).
+
 enter_register(FunctionName) :-
   statistics(process_cputime, Current),
   not(register(FunctionName, _, _)),
