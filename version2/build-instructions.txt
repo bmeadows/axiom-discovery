@@ -1,0 +1,26 @@
+Requires SWI-Prolog (version 6 or higher) to run.
+
+The framework is contained in the main file 'q_RRL.pl'. Rules and facts from other .pl files are included according to the parameterization given in this file.
+
+To run, first modify the first 100 lines of the main file to set these and other parameters as appropriate. This should include loading a file describing the test domain.
+
+(The file 'domain_rb.pl' is configured to learn a causal law for one particular action, and must be reconfigured to find constraints for other actions.)
+
+To begin learning, consult the main file with SWI-Prolog (swipl.exe).
+
+Enter
+
+     run('filename').
+
+to begin processing.
+
+A batch processing interface is available using
+
+    runbatch('counterFilename', 'errorFilename', 'timeFilename').
+
+which can be run multiple times updating the run data that is stored in the output files each time.
+
+Known issue: Relevance calculation functions described in process_domains.pl are not working consistently.
+
+
+
